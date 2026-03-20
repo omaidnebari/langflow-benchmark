@@ -8,14 +8,14 @@ import {
 } from "@/constants/constants";
 import { useDarkStore } from "@/stores/darkStore";
 import "@/style/ag-theme-shadcn.css"; // Custom CSS applied to the grid
-import { TableOptionsTypeAPI } from "@/types/api";
+import type { ColDef } from "ag-grid-community";
+import type { TableOptionsTypeAPI } from "@/types/api";
 import { cn } from "@/utils/utils";
-import { ColDef } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
-import { AgGridReact, AgGridReactProps } from "ag-grid-react";
+import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import cloneDeep from "lodash";
-import { ElementRef, forwardRef, useRef, useState } from "react";
+import { type ElementRef, forwardRef, useRef, useState } from "react";
 import TableOptions from "./components/TableOptions";
 import resetGrid from "./utils/reset-grid-columns";
 
@@ -38,6 +38,7 @@ export interface TableComponentProps extends AgGridReactProps {
   onDuplicate?: () => void;
   addRow?: () => void;
   tableOptions?: TableOptionsTypeAPI;
+  paginationInfo?: string;
 }
 
 const TableComponent = forwardRef<
@@ -53,14 +54,61 @@ const TableComponent = forwardRef<
     },
     ref,
   ) => {
-    let colDef = props.columnDefs
+    const isSingleToggleRowEditable = (
+      colField: string,
+      rowData: any,
+      currentRowValue: any,
+    ) => {
+      try {
+        // Check if this is a single-toggle column (Vectorize or Identifier)
+        const isSingleToggleColumn =
+          colField === "Vectorize" ||
+          colField === "vectorize" ||
+          colField === "Identifier" ||
+          colField === "identifier";
+
+        if (!isSingleToggleColumn) return true;
+
+        // Safeguard: ensure we have rowData array
+        if (!props.rowData || !Array.isArray(props.rowData)) {
+          return true;
+        }
+
+        // Normalize the current value to boolean
+        const normalizedCurrentValue =
+          currentRowValue === true ||
+          currentRowValue === "true" ||
+          currentRowValue === 1;
+
+        // If current row is true, always allow editing (to turn it off)
+        if (normalizedCurrentValue) {
+          return true;
+        }
+
+        // If current row is false, only allow editing if no other row is true
+        const hasAnyTrue = props.rowData.some((row) => {
+          if (!row || typeof row !== "object") return false;
+          const value = row[colField];
+          const normalizedValue =
+            value === true || value === "true" || value === 1;
+          return normalizedValue;
+        });
+
+        return !hasAnyTrue;
+      } catch (_error) {
+        // Default to editable if there's an error to avoid breaking functionality
+        return true;
+      }
+    };
+
+    const colDef = props.columnDefs
       .filter((col) => !col.hide)
-      .map((col, index) => {
+      .map((col, index, filteredArray) => {
         let newCol = {
           ...col,
         };
 
-        if (index !== props.columnDefs.length - 1) {
+        if (index !== filteredArray.length - 1) {
           newCol = {
             ...newCol,
             suppressSizeToFit: true,
@@ -69,8 +117,8 @@ const TableComponent = forwardRef<
         if (props.rowSelection && props.onSelectionChanged && index === 0) {
           newCol = {
             ...newCol,
-            checkboxSelection: true,
-            headerCheckboxSelection: true,
+            checkboxSelection: col.checkboxSelection !== false,
+            headerCheckboxSelection: col.headerCheckboxSelection !== false,
             headerCheckboxSelectionFilteredOnly: true,
           };
         }
@@ -91,10 +139,49 @@ const TableComponent = forwardRef<
             props.editable.every((field) => typeof field === "string") &&
             (props.editable as Array<string>).includes(newCol.field ?? ""))
         ) {
-          newCol = {
-            ...newCol,
-            editable: true,
-          };
+          // Special handling for single-toggle columns (Vectorize and Identifier)
+          const isSingleToggleColumn =
+            newCol.field === "Vectorize" ||
+            newCol.field === "vectorize" ||
+            newCol.field === "Identifier" ||
+            newCol.field === "identifier";
+
+          if (isSingleToggleColumn) {
+            newCol = {
+              ...newCol,
+              editable: (params) => {
+                const currentValue = params.data[params.colDef.field!];
+                return isSingleToggleRowEditable(
+                  newCol.field!,
+                  params.data,
+                  currentValue,
+                );
+              },
+              cellRendererParams: {
+                ...newCol.cellRendererParams,
+                isSingleToggleColumn: true,
+                singleToggleField: newCol.field,
+                checkSingleToggleEditable: (params) => {
+                  try {
+                    const fieldName = newCol.field!;
+                    const currentValue = params?.data?.[fieldName];
+                    return isSingleToggleRowEditable(
+                      fieldName,
+                      params?.data,
+                      currentValue,
+                    );
+                  } catch (_error) {
+                    return false;
+                  }
+                },
+              },
+            };
+          } else {
+            newCol = {
+              ...newCol,
+              editable: true,
+            };
+          }
         }
         if (
           Array.isArray(props.editable) &&
@@ -108,11 +195,68 @@ const TableComponent = forwardRef<
             }>
           ).find((field) => field.field === newCol.field);
           if (field) {
-            newCol = {
-              ...newCol,
-              editable: field.editableCell,
-              onCellValueChanged: (e) => field.onUpdate(e),
-            };
+            // Special handling for single-toggle columns (Vectorize and Identifier)
+            const isSingleToggleColumn =
+              newCol.field === "Vectorize" ||
+              newCol.field === "vectorize" ||
+              newCol.field === "Identifier" ||
+              newCol.field === "identifier";
+
+            if (isSingleToggleColumn) {
+              newCol = {
+                ...newCol,
+                editable: (params) => {
+                  const currentValue = params.data[params.colDef.field!];
+                  return (
+                    field.editableCell &&
+                    isSingleToggleRowEditable(
+                      newCol.field!,
+                      params.data,
+                      currentValue,
+                    )
+                  );
+                },
+                cellRendererParams: {
+                  ...newCol.cellRendererParams,
+                  isSingleToggleColumn: true,
+                  singleToggleField: newCol.field,
+                  checkSingleToggleEditable: (params) => {
+                    try {
+                      const fieldName = newCol.field!;
+                      const currentValue = params?.data?.[fieldName];
+                      return (
+                        field.editableCell &&
+                        isSingleToggleRowEditable(
+                          fieldName,
+                          params?.data,
+                          currentValue,
+                        )
+                      );
+                    } catch (_error) {
+                      return false;
+                    }
+                  },
+                },
+                onCellValueChanged: (e) => {
+                  field.onUpdate(e);
+                  // Refresh grid to update editable state of other cells
+                  setTimeout(() => {
+                    if (
+                      realRef.current?.api &&
+                      !realRef.current.api.isDestroyed()
+                    ) {
+                      realRef.current.api.refreshCells({ force: true });
+                    }
+                  }, 0);
+                },
+              };
+            } else {
+              newCol = {
+                ...newCol,
+                editable: field.editableCell,
+                onCellValueChanged: (e) => field.onUpdate(e),
+              };
+            }
           }
         }
         return newCol;
@@ -123,7 +267,11 @@ const TableComponent = forwardRef<
     const dark = useDarkStore((state) => state.dark);
     const initialColumnDefs = useRef(colDef);
     const [columnStateChange, setColumnStateChange] = useState(false);
-    const storeReference = props.columnDefs.map((e) => e.headerName).join("_");
+    // Only use visible columns for the store reference
+    const storeReference = props.columnDefs
+      .filter((col) => !col.hide)
+      .map((e) => e.headerName)
+      .join("_");
 
     const onGridReady = (params) => {
       // @ts-ignore
@@ -148,6 +296,8 @@ const TableComponent = forwardRef<
       setTimeout(() => {
         if (!realRef?.current?.api?.isDestroyed) {
           realRef?.current?.api?.hideOverlay();
+          // Force column fit after hiding overlay to ensure proper layout
+          realRef?.current?.api?.sizeColumnsToFit();
         }
       }, 1000);
       if (props.onGridReady) props.onGridReady(params);
@@ -168,7 +318,7 @@ const TableComponent = forwardRef<
 
       const containerWidth = containerElement.clientWidth;
 
-      // Get all columns
+      // Get only visible columns
       const columns = gridApi.getColumns();
       if (!columns) return;
 
@@ -198,23 +348,22 @@ const TableComponent = forwardRef<
     }
 
     if (colDef.length === 0) {
-      {
-        return (
-          <div className="flex h-full w-full items-center justify-center rounded-md border">
-            <Alert variant={"default"} className="w-fit">
-              <ForwardedIconComponent
-                name="AlertCircle"
-                className="h-5 w-5 text-primary"
-              />
-              <AlertTitle>{NO_COLUMN_DEFINITION_ALERT_TITLE}</AlertTitle>
-              <AlertDescription>
-                {NO_COLUMN_DEFINITION_ALERT_DESCRIPTION}
-              </AlertDescription>
-            </Alert>
-          </div>
-        );
-      }
+      return (
+        <div className="flex h-full w-full items-center justify-center rounded-md border">
+          <Alert variant={"default"} className="w-fit">
+            <ForwardedIconComponent
+              name="AlertCircle"
+              className="h-5 w-5 text-primary"
+            />
+            <AlertTitle>{NO_COLUMN_DEFINITION_ALERT_TITLE}</AlertTitle>
+            <AlertDescription>
+              {NO_COLUMN_DEFINITION_ALERT_DESCRIPTION}
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
     }
+
     return (
       <div
         className={cn(
@@ -227,9 +376,14 @@ const TableComponent = forwardRef<
           {...props}
           defaultColDef={{
             minWidth: 100,
+            suppressColumnsToolPanel: true, // Don't show hidden columns in tool panel
           }}
           animateRows={false}
-          gridOptions={{ colResizeDefault: "shift", ...props.gridOptions }}
+          gridOptions={{
+            colResizeDefault: "shift",
+            suppressColumnVirtualisation: false, // Enable column virtualization for better performance
+            ...props.gridOptions,
+          }}
           onColumnResized={onColumnResized}
           columnDefs={colDef}
           ref={(node) => {
@@ -243,6 +397,67 @@ const TableComponent = forwardRef<
           }}
           onGridReady={onGridReady}
           onColumnMoved={onColumnMoved}
+          onCellValueChanged={
+            props.onCellValueChanged
+              ? (e) => {
+                  // Handle single-toggle column changes (Vectorize and Identifier) to refresh grid editability
+                  const isSingleToggleField =
+                    e.colDef.field === "Vectorize" ||
+                    e.colDef.field === "vectorize" ||
+                    e.colDef.field === "Identifier" ||
+                    e.colDef.field === "identifier";
+
+                  if (isSingleToggleField) {
+                    setTimeout(() => {
+                      if (
+                        realRef.current?.api &&
+                        !realRef.current.api.isDestroyed()
+                      ) {
+                        // Refresh all cells with force to update cell renderer params
+                        if (e.colDef.field) {
+                          realRef.current.api.refreshCells({
+                            force: true,
+                            columns: [e.colDef.field],
+                          });
+                        }
+                        // Also refresh all other single-toggle column cells if they exist
+                        const allSingleToggleColumns = realRef.current.api
+                          .getColumns()
+                          ?.filter((col) => {
+                            const field = col.getColDef().field;
+                            return (
+                              field === "Vectorize" ||
+                              field === "vectorize" ||
+                              field === "Identifier" ||
+                              field === "identifier"
+                            );
+                          });
+                        if (
+                          allSingleToggleColumns &&
+                          allSingleToggleColumns.length > 0
+                        ) {
+                          const columnFields = allSingleToggleColumns
+                            .map((col) => col.getColDef().field)
+                            .filter(
+                              (field): field is string => field !== undefined,
+                            );
+                          if (columnFields.length > 0) {
+                            realRef.current.api.refreshCells({
+                              force: true,
+                              columns: columnFields,
+                            });
+                          }
+                        }
+                      }
+                    }, 0);
+                  }
+                  // Call original onCellValueChanged if it exists
+                  if (props.onCellValueChanged) {
+                    props.onCellValueChanged(e);
+                  }
+                }
+              : undefined
+          }
           onStateUpdated={(e) => {
             if (e.sources.some((source) => source.includes("column"))) {
               localStorage.setItem(
@@ -257,6 +472,7 @@ const TableComponent = forwardRef<
           <TableOptions
             tableOptions={props.tableOptions}
             stateChange={columnStateChange}
+            paginationInfo={props.paginationInfo}
             hasSelection={realRef.current?.api?.getSelectedRows()?.length > 0}
             duplicateRow={props.onDuplicate ? props.onDuplicate : undefined}
             deleteRow={props.onDelete ? props.onDelete : undefined}

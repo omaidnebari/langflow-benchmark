@@ -1,5 +1,6 @@
-import { useShortcutsStore } from "@/stores/shortcuts";
 import { useHotkeys } from "react-hotkeys-hook";
+import useFlowStore from "@/stores/flowStore";
+import { useShortcutsStore } from "@/stores/shortcuts";
 import isWrappedWithClass from "../../PageComponent/utils/is-wrapped-with-class";
 
 export default function useShortcuts({
@@ -8,7 +9,6 @@ export default function useShortcuts({
   openModal,
   showconfirmShare,
   FreezeAllVertices,
-  Freeze,
   downloadFunction,
   displayDocs,
   saveComponent,
@@ -25,7 +25,6 @@ export default function useShortcuts({
   openModal?: boolean;
   showconfirmShare?: boolean;
   FreezeAllVertices?: () => void;
-  Freeze?: () => void;
   downloadFunction?: () => void;
   displayDocs?: () => void;
   saveComponent?: () => void;
@@ -45,20 +44,17 @@ export default function useShortcuts({
   const code = useShortcutsStore((state) => state.code);
   const group = useShortcutsStore((state) => state.group);
   const download = useShortcutsStore((state) => state.download);
-  const freeze = useShortcutsStore((state) => state.freeze);
   const freezeAll = useShortcutsStore((state) => state.freezePath);
   const toolMode = useShortcutsStore((state) => state.toolMode);
+
+  const inspectionPanelVisible = useFlowStore(
+    (state) => state.inspectionPanelVisible,
+  );
 
   function handleFreezeAll(e: KeyboardEvent) {
     if (isWrappedWithClass(e, "noflow") || !FreezeAllVertices) return;
     e.preventDefault();
     FreezeAllVertices();
-  }
-
-  function handleFreeze(e: KeyboardEvent) {
-    if (isWrappedWithClass(e, "noflow") || !Freeze) return;
-    e.preventDefault();
-    Freeze();
   }
 
   function handleDownloadWShortcut(e: KeyboardEvent) {
@@ -130,13 +126,16 @@ export default function useShortcuts({
   useHotkeys(group, handleGroupWShortcut, { preventDefault: true });
   useHotkeys(componentShare, handleShareWShortcut, { preventDefault: true });
   useHotkeys(code, handleCodeWShortcut, { preventDefault: true });
-  useHotkeys(advancedSettings, handleAdvancedWShortcut, {
-    preventDefault: true,
-  });
+  useHotkeys(
+    advancedSettings,
+    !inspectionPanelVisible ? handleAdvancedWShortcut : () => {},
+    {
+      preventDefault: true,
+    },
+  );
   useHotkeys(save, handleSaveWShortcut, { preventDefault: true });
   useHotkeys(docs, handleDocsWShortcut, { preventDefault: true });
   useHotkeys(download, handleDownloadWShortcut, { preventDefault: true });
-  useHotkeys(freeze, handleFreeze);
   useHotkeys(freezeAll, handleFreezeAll);
   useHotkeys(toolMode, (e) => handleToolModeWShortcut(e, hasToolMode), {
     preventDefault: true,

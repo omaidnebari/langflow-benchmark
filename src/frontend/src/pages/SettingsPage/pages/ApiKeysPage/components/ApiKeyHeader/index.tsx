@@ -2,6 +2,7 @@ import ForwardedIconComponent from "../../../../../../components/common/genericI
 import { Button } from "../../../../../../components/ui/button";
 import { API_PAGE_PARAGRAPH } from "../../../../../../constants/constants";
 import SecretKeyModal from "../../../../../../modals/secretKeyModal";
+import { getModalPropsApiKey } from "../../helpers/get-modal-props";
 
 type ApiKeyHeaderComponentProps = {
   selectedRows: string[];
@@ -13,11 +14,15 @@ const ApiKeyHeaderComponent = ({
   fetchApiKeys,
   userId,
 }: ApiKeyHeaderComponentProps) => {
+  const modalProps = getModalPropsApiKey();
   return (
     <>
       <div className="flex w-full items-start justify-between gap-6">
         <div className="flex w-full flex-col">
-          <h2 className="flex items-center text-lg font-semibold tracking-tight">
+          <h2
+            className="flex items-center text-lg font-semibold tracking-tight"
+            data-testid="settings_menu_header"
+          >
             Langflow API Keys
             <ForwardedIconComponent
               name="Key"
@@ -27,7 +32,11 @@ const ApiKeyHeaderComponent = ({
           <p className="text-sm text-muted-foreground">{API_PAGE_PARAGRAPH}</p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <SecretKeyModal data={userId} onCloseModal={fetchApiKeys}>
+          <SecretKeyModal
+            modalProps={modalProps}
+            data={userId}
+            onCloseModal={fetchApiKeys}
+          >
             <Button data-testid="api-key-button-store" variant="primary">
               <ForwardedIconComponent name="Plus" className="w-4" />
               Add New

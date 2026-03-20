@@ -1,63 +1,95 @@
 <!-- markdownlint-disable MD030 -->
 
-![Langflow](./docs/static/img/hero.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/static/img/langflow-logo-color-blue-bg.svg">
+  <img src="./docs/static/img/langflow-logo-color-black-solid.svg" alt="Langflow logo">
+</picture>
 
-<p align="center" style="font-size: 12px;">
-    Langflow is a low-code app builder for RAG and multi-agent AI applications. It’s Python-based and agnostic to any model, API, or database.
-</p>
+[![Release Notes](https://img.shields.io/github/release/langflow-ai/langflow?style=flat-square)](https://github.com/langflow-ai/langflow/releases)
+[![PyPI - License](https://img.shields.io/badge/license-MIT-orange)](https://opensource.org/licenses/MIT)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/langflow?style=flat-square)](https://pypistats.org/packages/langflow)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/langflow-ai.svg?style=social&label=Follow%20%40Langflow)](https://twitter.com/langflow_ai)
+[![YouTube Channel](https://img.shields.io/youtube/channel/subscribers/UCn2bInQrjdDYKEEmbpwblLQ?label=Subscribe)](https://www.youtube.com/@Langflow)
+[![Discord Server](https://img.shields.io/discord/1116803230643527710?logo=discord&style=social&label=Join)](https://discord.gg/EqksyE2EX9)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/langflow-ai/langflow)
 
-<p align="center" style="font-size: 12px;">
-    <a href="https://docs.langflow.org" style="text-decoration: underline;">Docs</a> -
-    <a href="https://astra.datastax.com/signup?type=langflow" style="text-decoration: underline;">Free Cloud Service</a> -
-    <a href="https://docs.langflow.org/get-started-installation" style="text-decoration: underline;">Self Managed</a>
+[Langflow](https://langflow.org) is a powerful platform for building and deploying AI-powered agents and workflows. It provides developers with both a visual authoring experience and built-in API and MCP servers that turn every workflow into a tool that can be integrated into applications built on any framework or stack. Langflow comes with batteries included and supports all major LLMs, vector databases and a growing library of AI tools.
 
-</p>
+## ✨ Highlight features
 
-<div align="center">
-  <a href="./README.md"><img alt="README in English" src="https://img.shields.io/badge/English-d9d9d9"></a>
-  <a href="./README.PT.md"><img alt="README in Portuguese" src="https://img.shields.io/badge/Portuguese-d9d9d9"></a>
-  <a href="./README.ES.md"><img alt="README in Spanish" src="https://img.shields.io/badge/Spanish-d9d9d9"></a>
-  <a href="./README.zh_CN.md"><img alt="README in Simplified Chinese" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
-  <a href="./README.ja.md"><img alt="README in Japanese" src="https://img.shields.io/badge/日本語-d9d9d9"></a>
-  <a href="./README.KR.md"><img alt="README in KOREAN" src="https://img.shields.io/badge/한국어-d9d9d9"></a>
-  <a href="./README.FR.md"><img alt="README in French" src="https://img.shields.io/badge/Français-d9d9d9"></a>
-  <a href="./README.RU.md"><img alt="README in Russian" src="https://img.shields.io/badge/Русский"></a>
-</div>
+- **Visual builder interface** to quickly get started and iterate.
+- **Source code access** lets you customize any component using Python.
+- **Interactive playground** to immediately test and refine your flows with step-by-step control.
+- **Multi-agent orchestration** with conversation management and retrieval.
+- **Deploy as an API** or export as JSON for Python apps.
+- **Deploy as an MCP server** and turn your flows into tools for MCP clients.
+- **Observability** with LangSmith, LangFuse and other integrations.
+- **Enterprise-ready** security and scalability.
 
-## ✨ Core features
+## 🖥️  Langflow Desktop
 
-1. **Python-based** and agnostic to models, APIs, data sources, or databases.
-2. **Visual IDE** for drag-and-drop building and testing of workflows.
-3. **Playground** to immediately test and iterate workflows with step-by-step control.
-4. **Multi-agent** orchestration and conversation management and retrieval.
-5. **Free cloud service** to get started in minutes with no setup.
-6. **Publish as an API** or export as a Python application.
-7. **Observability** with LangSmith, LangFuse, or LangWatch integration.
-8. **Enterprise-grade** security and scalability with free DataStax Langflow cloud service.
-9. **Customize workflows** or create flows entirely just using Python.
-10. **Ecosystem integrations** as reusable components for any model, API or database.
+Langflow Desktop is the easiest way to get started with Langflow. All dependencies are included, so you don't need to manage Python environments or install packages manually.
+Available for Windows and macOS.
 
-![Integrations](./docs/static/img/integrations.png)
+[📥 Download Langflow Desktop](https://www.langflow.org/desktop)
 
-## 📦 Quickstart
+## ⚡️ Quickstart
 
-- **Install with uv (recommended)** (Python 3.10 to 3.12):
+### Install locally (recommended)
 
+Requires Python 3.10–3.13 and [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended package manager).
+
+#### Install
+
+From a fresh directory, run:
 ```shell
-uv pip install langflow
+uv pip install langflow -U
 ```
 
-- **Install with pip** (Python 3.10 to 3.12):
+The latest Langflow package is installed.
+For more information, see [Install and run the Langflow OSS Python package](https://docs.langflow.org/get-started-installation#install-and-run-the-langflow-oss-python-package).
 
+#### Run
+
+To start Langflow, run:
 ```shell
-pip install langflow
+uv run langflow run
 ```
 
-- **Cloud:** DataStax Langflow is a hosted environment with zero setup. [Sign up for a free account.](https://astra.datastax.com/signup?type=langflow)
-- **Self-managed:** Run Langflow in your environment. [Install Langflow](https://docs.langflow.org/get-started-installation) to run a local Langflow server, and then use the [Quickstart](https://docs.langflow.org/get-started-quickstart) guide to create and execute a flow.
-- **Hugging Face:** [Clone the space using this link](https://huggingface.co/spaces/Langflow/Langflow?duplicate=true) to create a Langflow workspace.
+Langflow starts at http://127.0.0.1:7860.
 
-[![Getting Started](https://github.com/user-attachments/assets/f1adfbe7-3c35-43a4-b265-661f3d4f875f)](https://www.youtube.com/watch?v=kinngWhaUKM)
+That's it! You're ready to build with Langflow! 🎉
+
+## 📦 Other install options
+
+### Run from source
+If you've cloned this repository and want to contribute, run this command from the repository root:
+```shell
+make run_cli
+```
+For more information, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+### Docker
+Start a Langflow container with default settings:
+```shell
+docker run -p 7860:7860 langflowai/langflow:latest
+```
+Langflow is available at http://localhost:7860/.
+For configuration options, see the [Docker deployment guide](https://docs.langflow.org/deployment-docker).
+
+> [!CAUTION]
+> - Users must update to Langflow >= 1.7.1 to protect against [CVE-2025-68477](https://github.com/langflow-ai/langflow/security/advisories/GHSA-5993-7p27-66g5) and [CVE-2025-68478](https://github.com/langflow-ai/langflow/security/advisories/GHSA-f43r-cc68-gpx4).
+> - Langflow version 1.7.0 has a critical bug where persisted state (flows, projects, and global variables) cannot be found when upgrading. Version 1.7.0 was yanked and replaced with version 1.7.1, which includes a fix for this bug. **DO NOT** upgrade to version 1.7.0. Instead, upgrade directly to version 1.7.1.
+> - Langflow versions 1.6.0 through 1.6.3 have a critical bug where `.env` files are not read, potentially causing security vulnerabilities. **DO NOT** upgrade to these versions if you use `.env` files for configuration. Instead, upgrade to 1.6.4, which includes a fix for this bug.
+> - Windows users of Langflow Desktop should **not** use the in-app update feature to upgrade to Langflow version 1.6.0. For upgrade instructions, see [Windows Desktop update issue](https://docs.langflow.org/release-notes#windows-desktop-update-issue).
+> - Users must update to Langflow >= 1.3 to protect against [CVE-2025-3248](https://nvd.nist.gov/vuln/detail/CVE-2025-3248)
+> - Users must update to Langflow >= 1.5.1 to protect against [CVE-2025-57760](https://github.com/langflow-ai/langflow/security/advisories/GHSA-4gv9-mp8m-592r)
+>
+> For security information, see our [Security Policy](./SECURITY.md) and [Security Advisories](https://github.com/langflow-ai/langflow/security/advisories).
+
+## 🚀 Deployment
+
+Langflow is completely open source and you can deploy it to all major deployment clouds. To learn how to deploy Langflow, see our [Langflow deployment guides](https://docs.langflow.org/deployment-overview).
 
 ## ⭐ Stay up-to-date
 
@@ -76,4 +108,3 @@ We welcome contributions from developers of all levels. If you'd like to contrib
 ## ❤️ Contributors
 
 [![langflow contributors](https://contrib.rocks/image?repo=langflow-ai/langflow)](https://github.com/langflow-ai/langflow/graphs/contributors)
-
